@@ -10,11 +10,13 @@
  * \brief Callback supplied to `Stream::registerSerialEventCallback`,
  *        and invoked when data is available.
  *
+ * \param [in] Optional context to use in the callback
+ *
  * \note Use `Stream.read()` to capture this data.
  *
  * <a href="https://www.arduino.cc/en/Reference/SerialEvent">serialEvent (Arduino.cc)</a>
  */
-typedef void(*serialEvent)(void);
+typedef void(*serialEvent)(void*);
 
 /*!
  * \brief Stream is the base class for character and binary based streams
@@ -107,11 +109,15 @@ struct Stream {
      *
      * \param [in] bytes_available_ Callback invoked when byte(s) are
      *                              available in the buffer
+     *
+     * \param [in] context_ Optional context to send back to bytes_available_
+     *                      when called.
      */
     virtual
     void
     registerSerialEventCallback (
-        serialEvent bytes_available_
+        serialEvent bytes_available_,
+        void *context_ = nullptr
     ) = 0;
 
     /*!

@@ -5,6 +5,9 @@
 
 #include "Stream.h"
 #include <termios.h>
+#include <thread>
+#include <sys/poll.h>
+#include <atomic>
 
 namespace remote_wiring {
 
@@ -76,6 +79,11 @@ class UartSerial : public Stream {
     struct termios _tio_original_config;
     struct termios _tio_config;
     serialEvent _bytes_available_callback;
+    void *_callbackContext;
+    
+    struct pollfd _fds[1];
+    std::thread _pollThread;
+    std::atomic<bool> _polling;
 
   public:
     UartSerial(const char *device);
@@ -86,7 +94,10 @@ class UartSerial : public Stream {
     void flush (void);
     int read (void);
     void write (uint8_t byte_);
-    void registerSerialEventCallback (serialEvent bytes_available_);
+    void registerSerialEventCallback (serialEvent bytes_available_, void *context_ = nullptr);
+
+  private:
+    void pollForSerialData(void);
 
     /*!
     * \brief Sets the data rate in bits per second (baud) for

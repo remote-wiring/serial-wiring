@@ -1,20 +1,16 @@
-#include "UartSerial.h"
 
-#include <string.h>
+#include "UartSerial.h"
 #include <unistd.h>
-#include <stdio.h>
 #include <fcntl.h>
-#include <sys/types.h>
-#include <signal.h>
 #include <stdlib.h>
-#include <stdint.h>
-#include <time.h>
 #include "sys/ioctl.h"
+#include <string.h>
+
 
 using namespace remote_wiring::transport;
 using namespace std;
 
-UartSerial::UartSerial(const char *device) : _fd(-1)
+UartSerial::UartSerial(const char *device) : _fd(-1), _bytes_available_callback(nullptr), _callbackContext(nullptr), _polling(true)
 {
   bzero(&_tio_config, sizeof(_tio_config));
   strcpy(_device, device);
@@ -27,6 +23,8 @@ UartSerial::~UartSerial()
 
 size_t UartSerial::available()
 {
+  if (_fd == -1) return 0;
+
   int numBytesAvailable;
   ioctl(_fd, FIONREAD, &numBytesAvailable);
   return numBytesAvailable;
@@ -104,22 +102,30 @@ void UartSerial::begin(uint32_t speed_, size_t config_)
 
 void UartSerial::end()
 {
-  if(_fd != -1){
-    flush();
-    // Restore the original settings
-    tcsetattr(_fd, TCSANOW, &_tio_original_config);
-    close(_fd);
-    _fd = -1;
-  }
+  if(_fd == -1) return;
+  
+  flush();
+
+  // Shut down the poll() thread
+  _polling = false;
+  _pollThread.join();
+
+  // Restore the original settings
+  tcsetattr(_fd, TCSANOW, &_tio_original_config);
+  close(_fd);
+  _fd = -1;
 }
 
 void UartSerial::flush()
 {
-  tcdrain(_fd);
+  if(_fd != -1)
+    tcdrain(_fd);
 }
 
 int UartSerial::read()
 {
+  if(_fd == -1) return -1;
+
   int buffer[1];
   int res = ::read(_fd, buffer, 1);
   if (res == 0) 
@@ -130,10 +136,43 @@ int UartSerial::read()
 
 void UartSerial::write(uint8_t byte_)
 {
-  ::write(_fd, &byte_, 1);
+  if(_fd != -1)
+    ::write(_fd, &byte_, 1);
 }
 
-void UartSerial::registerSerialEventCallback (serialEvent bytes_available_)
+void UartSerial::registerSerialEventCallback (serialEvent bytes_available_, void *context_)
 {
-  _bytes_available_callback = bytes_available_;
+  if(_fd == -1) return;
+
+  // For now only allow a single callback to be assigned
+  if(_bytes_available_callback == nullptr)
+  {
+    _bytes_available_callback = bytes_available_;
+    _callbackContext = context_;
+
+    // Setup poll struct
+    _fds[0].fd = _fd;
+    _fds[0].events = POLLIN;
+
+    _polling = true;
+    _pollThread = std::thread(&UartSerial::pollForSerialData, this);
+  }
+}
+
+void UartSerial::pollForSerialData()
+{
+  int pollrc = 0;
+  while(_polling)
+  {
+    pollrc = poll(_fds, 1, 5); // timeout after 5ms
+    if (pollrc > 0 && (_fds[0].revents & POLLIN))
+    {
+      _bytes_available_callback(_callbackContext);
+    }
+    else
+    {
+      // Release control back to the CPU
+      this_thread::sleep_for(std::chrono::seconds(0));
+    }
+  }
 }
