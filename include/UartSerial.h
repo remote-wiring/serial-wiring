@@ -96,9 +96,6 @@ class UartSerial : public Stream {
     void write (uint8_t byte_);
     void registerSerialEventCallback (serialEvent bytes_available_, void *context_ = nullptr);
 
-  private:
-    void pollForSerialData(void);
-
     /*!
     * \brief Sets the data rate in bits per second (baud) for
     *        serial data transmission
@@ -121,6 +118,9 @@ class UartSerial : public Stream {
       uint32_t speed_ = 57600,
       size_t config_ = SERIAL_8N1
     );
+
+  private:
+    void pollForSerialData(void);
 };
 
 } // namespace transport
