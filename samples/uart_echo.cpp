@@ -10,7 +10,7 @@ characters in on the serialport until a newline is encountered. Once the
 newline is received it transmits the entire string back out over serial. 
 That transmission triggers the serial_event() callback in the code below.
 
-Take note on line 43 that the path to the serial device is different based
+Take note on line 50 that the path to the serial device is different based
 on the platform on which you are compiling.
 
 To build this sample ensure you have the C++ dev tools installed on your
