@@ -20,10 +20,10 @@ g++ samples/uart_echo.cpp src/UartSerial.cpp -I include -pthread -std=c++11 -Wal
 
 */
 
-#include <Stream.h>
-#include <UartSerial.h>
 #include <unistd.h>
 #include <iostream>
+#include "Stream.h"
+#include "UartSerial.h"
 
 using namespace std;
 using namespace remote_wiring::transport;

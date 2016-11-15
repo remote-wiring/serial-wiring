@@ -74,19 +74,19 @@ union SerialOptions {
 
 class UartSerial : public Stream {
   private:
-    int _fd;
-    char _device[64];
+    int _serial_file_descriptor;
+    char *_serial_device_path;
     struct termios _tio_original_config;
     struct termios _tio_config;
     serialEvent _bytes_available_callback;
-    void *_callbackContext;
+    void *_callback_context;
     
-    struct pollfd _fds[1];
-    std::thread _pollThread;
+    struct pollfd _polling_file_descriptor;
+    std::thread _poll_thread;
     std::atomic<bool> _polling;
 
   public:
-    UartSerial(const char *device);
+    UartSerial(const char *device_);
     virtual ~UartSerial(void);
     size_t available (void);
     inline void begin(void) { begin(57600, SERIAL_8N1); }
@@ -120,7 +120,8 @@ class UartSerial : public Stream {
     );
 
   private:
-    void pollForSerialData(void);
+    void poll_for_serial_data(void);
+    void cleanup_serial_file_descriptor(void);
 };
 
 } // namespace transport
