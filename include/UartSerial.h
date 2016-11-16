@@ -11,30 +11,30 @@
 
 namespace remote_wiring {
 
-size_t const SERIAL_5E1 = 0x0800;
-size_t const SERIAL_5E2 = 0x0C00;
+size_t const SERIAL_5E1 = 0x1000;
+size_t const SERIAL_5E2 = 0x1400;
 size_t const SERIAL_5N1 = 0x0000;
 size_t const SERIAL_5N2 = 0x0400;
-size_t const SERIAL_5O1 = 0x1800;
-size_t const SERIAL_5O2 = 0x1C00;
-size_t const SERIAL_6E1 = 0x0900;
-size_t const SERIAL_6E2 = 0x0D00;
+size_t const SERIAL_5O1 = 0x3000;
+size_t const SERIAL_5O2 = 0x3400;
+size_t const SERIAL_6E1 = 0x1100;
+size_t const SERIAL_6E2 = 0x1500;
 size_t const SERIAL_6N1 = 0x0100;
 size_t const SERIAL_6N2 = 0x0500;
-size_t const SERIAL_6O1 = 0x1900;
-size_t const SERIAL_6O2 = 0x1D00;
-size_t const SERIAL_7E1 = 0x0A00;
-size_t const SERIAL_7E2 = 0x0E00;
+size_t const SERIAL_6O1 = 0x3100;
+size_t const SERIAL_6O2 = 0x3500;
+size_t const SERIAL_7E1 = 0x1200;
+size_t const SERIAL_7E2 = 0x1600;
 size_t const SERIAL_7N1 = 0x0200;
 size_t const SERIAL_7N2 = 0x0600;
-size_t const SERIAL_7O1 = 0x1A00;
-size_t const SERIAL_7O2 = 0x1E00;
-size_t const SERIAL_8E1 = 0x0B00;
-size_t const SERIAL_8E2 = 0x0F00;
+size_t const SERIAL_7O1 = 0x3200;
+size_t const SERIAL_7O2 = 0x3600;
+size_t const SERIAL_8E1 = 0x1300;
+size_t const SERIAL_8E2 = 0x1700;
 size_t const SERIAL_8N1 = 0x0300;
 size_t const SERIAL_8N2 = 0x0700;
-size_t const SERIAL_8O1 = 0x1B00;
-size_t const SERIAL_8O2 = 0x1F00;
+size_t const SERIAL_8O1 = 0x3300;
+size_t const SERIAL_8O2 = 0x3700;
 
 namespace transport {
 
@@ -50,12 +50,13 @@ namespace transport {
 * \sa <a href="https://github.com/torvalds/linux/blob/master/include/uapi/asm-generic/termbits.h">termbits.h (Linux)</a>
 */
 typedef struct SerialFlags {
-  uint16_t reserved_1:3;
-  uint16_t parity_odd:1;
-  uint16_t parity_enable:1;
-  uint16_t stop_bit_2:1;
+  uint16_t reserved_1:8;
   uint16_t char_count:2;
-  uint16_t reserved_2:8;
+  uint16_t stop_bit_2:1;
+  uint16_t reserved_2:1;
+  uint16_t parity_enable:1;
+  uint16_t parity_odd:1;
+  uint16_t reserved_3:2;
 } SerialFlags;
 
 /*!
@@ -120,8 +121,8 @@ class UartSerial : public Stream {
     );
 
   private:
-    void poll_for_serial_data(void);
-    void cleanup_serial_file_descriptor(void);
+    void pollForSerialData(void);
+    void cleanupSerialFileDescriptor(void);
 };
 
 } // namespace transport

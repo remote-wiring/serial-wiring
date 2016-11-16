@@ -50,7 +50,7 @@ void UartSerial::begin(uint32_t speed_, size_t config_)
   if(!isatty(_serial_file_descriptor)) 
   {
     perror("UartSerial::begin - file descriptor is not a TTY device"); 
-    cleanup_serial_file_descriptor();
+    cleanupSerialFileDescriptor();
     return;
   }
 
@@ -58,7 +58,7 @@ void UartSerial::begin(uint32_t speed_, size_t config_)
   if (tcgetattr(_serial_file_descriptor, &_tio_original_config) < 0)
   {
     perror("UartSerial::begin - Unable to save current term attributes");
-    cleanup_serial_file_descriptor();
+    cleanupSerialFileDescriptor();
     return;
   }
 
@@ -78,7 +78,7 @@ void UartSerial::begin(uint32_t speed_, size_t config_)
     default: 
     {
       perror("UartSerial::begin - unsupported baud rate");
-      cleanup_serial_file_descriptor();
+      cleanupSerialFileDescriptor();
       return;
     }
   }
@@ -86,14 +86,14 @@ void UartSerial::begin(uint32_t speed_, size_t config_)
   if (cfsetispeed(&_tio_config, baud_rate) != 0)
   {
     perror("UartSerial::begin - unable to set input baud rate");
-    cleanup_serial_file_descriptor();
+    cleanupSerialFileDescriptor();
     return;
   }
   
   if (cfsetospeed(&_tio_config, baud_rate ) != 0)
   {
     perror("UartSerial::begin - unable to set output baud rate");
-    cleanup_serial_file_descriptor();
+    cleanupSerialFileDescriptor();
     return;
   }
 
@@ -125,7 +125,7 @@ void UartSerial::begin(uint32_t speed_, size_t config_)
   if (tcflush(_serial_file_descriptor, TCIOFLUSH) != 0)
   {
     perror("UartSerial::begin - unable to flush non-transmitted output data");
-    cleanup_serial_file_descriptor();
+    cleanupSerialFileDescriptor();
     return;
   }
 
@@ -133,7 +133,7 @@ void UartSerial::begin(uint32_t speed_, size_t config_)
   if(tcsetattr(_serial_file_descriptor, TCSANOW, &_tio_config) < 0)
   {
     perror("UartSerial::begin - Unable to set term attributes");
-    cleanup_serial_file_descriptor();
+    cleanupSerialFileDescriptor();
     return;
   }
 }
@@ -153,7 +153,7 @@ void UartSerial::end()
   {
     perror("UartSerial::end - Unable to restore term attributes");
   }
-  cleanup_serial_file_descriptor();
+  cleanupSerialFileDescriptor();
 }
 
 void UartSerial::flush()
@@ -200,11 +200,11 @@ void UartSerial::registerSerialEventCallback (serialEvent bytes_available_, void
     _polling_file_descriptor.events = POLLIN;
 
     _polling = true;
-    _poll_thread = std::thread(&UartSerial::poll_for_serial_data, this);
+    _poll_thread = std::thread(&UartSerial::pollForSerialData, this);
   }
 }
 
-void UartSerial::poll_for_serial_data()
+void UartSerial::pollForSerialData()
 {
   int pollrc = 0;
   while(_polling)
@@ -222,7 +222,7 @@ void UartSerial::poll_for_serial_data()
   }
 }
 
-void UartSerial::cleanup_serial_file_descriptor()
+void UartSerial::cleanupSerialFileDescriptor()
 {
   ::close(_serial_file_descriptor);
   _serial_file_descriptor = -1;
