@@ -69,7 +69,7 @@ UartSerial::begin (
 ) {
   // Scrubbed parameters
   speed_t baud_rate = B0;
-  size_t c_cflags = (size_t)-1;
+  size_t c_cflags = (size_t)0;
 
   // Interpret common baud rates
   switch (speed_) {
@@ -122,7 +122,7 @@ UartSerial::begin (
   if ( B0 == baud_rate ) {
     ::perror("UartSerial::begin - Unsupported baud rate");
   // Validate configuration flags
-  } else if ( (size_t)-1 == c_cflags ) {
+  } else if ( (size_t)0 == c_cflags ) {
     ::perror("UartSerial::begin - Unsupported configuration");
   // Attempt to open the device
   } else if ( 0 > (_serial_file_descriptor = ::open(_serial_device_path, (O_RDWR | O_NOCTTY | O_NONBLOCK))) ) {
@@ -148,7 +148,6 @@ UartSerial::begin (
   } else {
     // Configure the termios structure. See termios man page for further info
     // http://man7.org/linux/man-pages/man3/termios.3.html
-    _tio_config = _tio_config_original;
 
     // c_iflag - input modes
     // Leave all input flags unset
@@ -157,7 +156,7 @@ UartSerial::begin (
     // Leave all output flags unset
 
     // c_cflag - control modes
-    _tio_config.c_cflag |= c_cflags;
+    _tio_config.c_cflag = c_cflags;
     _tio_config.c_cflag |= CREAD;   // Enable receiver
     _tio_config.c_cflag |= CLOCAL;  // Ignore modem control lines
     _tio_config.c_cflag |= HUPCL;  // Enable hang-up on close
