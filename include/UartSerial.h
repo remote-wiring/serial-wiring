@@ -37,6 +37,7 @@ size_t const SERIAL_8N1 = 0x0300;
 size_t const SERIAL_8N2 = 0x0700;
 size_t const SERIAL_8O1 = 0x3300;
 size_t const SERIAL_8O2 = 0x3700;
+size_t const SERIAL_INVALID_CONFIG = 0x0001;
 
 namespace transport {
 

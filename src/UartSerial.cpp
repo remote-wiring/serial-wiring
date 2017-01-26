@@ -69,7 +69,7 @@ UartSerial::begin (
 ) {
   // Scrubbed parameters
   speed_t baud_rate = B0;
-  size_t c_cflags = (size_t)0;
+  size_t c_cflags = 0;
 
   // Interpret common baud rates
   switch (speed_) {
@@ -115,14 +115,14 @@ UartSerial::begin (
     case SERIAL_8N2: c_cflags = CS8 | CSTOPB; break;
     case SERIAL_8O1: c_cflags = CS8 | PARENB | PARODD; break;
     case SERIAL_8O2: c_cflags = CS8 | PARENB | PARODD | CSTOPB; break;
-    default: break;
+    default: c_cflags = SERIAL_INVALID_CONFIG; break;
   }
 
   // Validate baud rate
   if ( B0 == baud_rate ) {
     ::perror("UartSerial::begin - Unsupported baud rate");
   // Validate configuration flags
-  } else if ( (size_t)0 == c_cflags ) {
+  } else if ( SERIAL_INVALID_CONFIG == c_cflags ) {
     ::perror("UartSerial::begin - Unsupported configuration");
   // Attempt to open the device
   } else if ( 0 > (_serial_file_descriptor = ::open(_serial_device_path, (O_RDWR | O_NOCTTY | O_NONBLOCK))) ) {
