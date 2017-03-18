@@ -6,6 +6,8 @@
 #include <cstddef>
 #include <cstdint>
 
+namespace serial_wiring {
+
 /*!
  * \brief Callback supplied to `Stream::registerSerialEventCallback`,
  *        and invoked when data is available.
@@ -28,14 +30,8 @@ typedef void(*serialEvent)(void * context_);
  *
  * \sa <a href="https://www.arduino.cc/en/Reference/Stream">Stream (Arduino.cc)</a>
  */
-struct Stream {
-    virtual
-    ~Stream (
-        void
-    ) {
-
-    }
-
+class Stream {
+  public:
     /*!
      * \brief Checks the number of bytes available in the buffer
      *
@@ -43,31 +39,37 @@ struct Stream {
      *
      * \sa <a href="https://www.arduino.cc/en/Reference/StreamAvailable">Stream::available (Arduino.cc)</a>
      */
-    virtual
+    inline
     size_t
     available (
         void
-    ) = 0;
+    ) {
+        return _available();
+    }
 
     /*!
      * \brief Initializes the underlying serial channel
      */
-    virtual
+    inline
     void
     begin (
         void
-    ) = 0;
+    ) {
+        _begin();
+    }
 
     /*!
      * \brief Closes the underlying serial channel
      *
      * \sa <a href="https://www.arduino.cc/en/Reference/Serial/End">Serial::end (Arduino.cc)</a>
      */
-    virtual
+    inline
     void
     end (
         void
-    ) = 0;
+    ) {
+        _end();
+    }
 
     /*!
      * \brief Clears the transmit buffer once all outgoing characters
@@ -80,11 +82,13 @@ struct Stream {
      * \sa <a href="https://github.com/arduino/Arduino/blob/master/hardware/arduino/avr/cores/arduino/Stream.h">GitHub: Arduino/.../Stream.h</a>
      * \sa <a href="https://www.arduino.cc/en/Reference/StreamFlush">Stream::flush (Arduino.cc)</a>
      */
-    virtual
+    inline
     void
     flush (
         void
-    ) = 0;
+    ) {
+        _flush();
+    }
 
     /*!
      * \brief Fetches the next byte from the buffer
@@ -101,7 +105,9 @@ struct Stream {
     int
     read (
         void
-    ) = 0;
+    ) {
+        return _read();
+    }
 
     /*!
      * \brief Registers a callback to be called when serial data is
@@ -116,9 +122,11 @@ struct Stream {
     virtual
     void
     registerSerialEventCallback (
-        serialEvent bytes_available_,
+        serialEvent on_bytes_available_,
         void * context_ = nullptr
-    ) = 0;
+    ) {
+        _registerSerialEventCallback(on_bytes_available_, context_);
+    }
 
     /*!
      * \brief Writes a byte to the stream
@@ -131,8 +139,67 @@ struct Stream {
     void
     write (
         uint8_t byte_
+    ) {
+        _write(byte_);
+    }
+
+  protected:
+    ~Stream (void) {}
+
+    virtual
+    size_t
+    _available (
+        void
+    ) = 0;
+
+    virtual
+    void
+    _begin (
+        void
+    ) = 0;
+
+    virtual
+    void
+    _end (
+        void
+    ) = 0;
+
+    virtual
+    void
+    _flush (
+        void
+    ) = 0;
+
+    virtual
+    int
+    _read (
+        void
+    ) = 0;
+
+    virtual
+    void
+    _registerSerialEventCallback (
+        serialEvent upon_bytes_available_,
+        void * context_ = nullptr
+    ) = 0;
+
+    virtual
+    void
+    _write (
+        uint8_t byte_
     ) = 0;
 };
+
+}  // namespace serial_wiring
+
+/*!
+ * \brief Arduino compatible `Stream`
+ *
+ * Arduino expects the `Stream` class to be available in
+ * the global namespace. This typedef promotes it from
+ * serial_wiring into the global namespace.
+ */
+typedef serial_wiring::Stream Stream;
 
 #endif // STREAM_H
 

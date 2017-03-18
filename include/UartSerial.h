@@ -1,7 +1,7 @@
 /* Created and copyrighted by Kevin D. Sidwar. Offered as open source under the MIT License (MIT). */
 
-#ifndef UartSerial_H
-#define UartSerial_H
+#ifndef UART_SERIAL_H
+#define UART_SERIAL_H
 
 #include <sys/poll.h>
 #include <termios.h>
@@ -11,7 +11,7 @@
 
 #include "Stream.h"
 
-namespace remote_wiring {
+namespace serial_wiring {
 
 namespace wiring {
 
@@ -43,8 +43,8 @@ static const size_t SERIAL_8O2 = 0x3700;
 }  // wiring
 
 /*!
-* \brief SerialFlags describes the flags specified by the serial configuration
-*        constants
+* \brief SerialFlags describes the flags specified by
+*        the serial configuration constants
 *
 * The serial configuration flags are designed to provide a level of
 * granularity that would enable a user to interpret the serial configuration
@@ -78,27 +78,23 @@ union SerialOptions {
 };
 
 class UartSerial : public Stream {
-  private:
-    serialEvent _bytesAvailableCallback;
-    void * _bytes_available_context;
-    std::thread _poll_thread;
-    std::atomic<bool> _polling;
-    struct pollfd _polling_file_descriptor;
-    char * _serial_device_path;
-    int _serial_file_descriptor;
-    struct termios _tio_config;
-    struct termios _tio_config_original;
-
   public:
-    UartSerial(const char *device);
-    virtual ~UartSerial(void);
-    size_t available (void);
-    inline void begin(void) { begin(57600, wiring::SERIAL_8N1); }
-    void end (void);
-    void flush (void);
-    int read (void);
-    void write (uint8_t byte_);
-    void registerSerialEventCallback (serialEvent bytes_available_, void *context_ = nullptr);
+
+    /*!
+     * \brief Create a new UartSerial object with path to the serial device
+     *
+     * \param [in] device_path_ The file system path to the remote device
+     *
+     * \note On Mac OSX the path is /dev/cu.usbmodem1411, but on most Linux
+     *       platforms (including the Raspberry Pi) the path is /dev/ttyACM0
+     */
+    UartSerial (
+        const char * device_path_
+    );
+
+    ~UartSerial(
+        void
+    );
 
     /*!
     * \brief Sets the data rate in bits per second (baud) for
@@ -119,17 +115,73 @@ class UartSerial : public Stream {
     */
     void
     begin (
-      const size_t speed_,
-      const size_t config_ = wiring::SERIAL_8N1
+        size_t speed_ = 57600,
+        size_t config_ = wiring::SERIAL_8N1
     );
 
   private:
-    int cleanupSerialFileDescriptor(void);
-    void pollForSerialData(void);
+    serialEvent _bytesAvailableCallback;
+    void * _bytes_available_context;
+    std::thread _poll_thread;
+    std::atomic_bool _polling;
+    struct pollfd _polling_file_descriptor;
+    char * _serial_device_path;
+    int _serial_file_descriptor;
+    struct termios _tio_config;
+    struct termios _tio_config_original;
+
+    size_t
+    _available (
+        void
+    ) override;
+
+    inline
+    void
+    _begin (
+        void
+    ) override {
+        begin();
+    }
+
+    void
+    _end (
+        void
+    ) override;
+
+    void
+    _flush (
+        void
+    ) override;
+
+    int
+    _read (
+        void
+    ) override;
+
+    void
+    _registerSerialEventCallback (
+        serialEvent upon_bytes_available_,
+        void * context_ = nullptr
+    ) override;
+
+    void
+    _write (
+        uint8_t byte_
+    ) override;
+
+    int
+    cleanupSerialFileDescriptor (
+        void
+    );
+
+    void
+    pollForSerialData (
+        void
+    );
 };
 
-} // namespace remote_wiring
+}  // namespace serial_wiring
 
-#endif // UartSerial_H
+#endif  // UART_SERIAL_H
 
 /* Created and copyrighted by Kevin D. Sidwar. Offered as open source under the MIT License (MIT). */

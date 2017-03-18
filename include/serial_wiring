@@ -1,0 +1,11 @@
+/* Created and copyrighted by Zachary J. Fields. Offered as open source under the MIT License (MIT). */
+
+#ifndef SERIAL_WIRING
+#define SERIAL_WIRING
+
+#include "Stream.h"
+#include "UartSerial.h"
+
+#endif  // SERIAL_WIRING
+
+/* Created and copyrighted by Zachary J. Fields. Offered as open source under the MIT License (MIT). */

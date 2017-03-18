@@ -18,12 +18,11 @@ on the platform on which you are compiling.
 To build this sample ensure you have the C++ dev tools installed on your
 platform and run the following command from the root folder of the repo
 
-g++ samples/uart_echo.cpp src/UartSerial.cpp -I include -pthread -std=c++11 -Wall -g -Werror -o uart_echo
+g++ uart_echo.cpp -o uart_echo -std=c++11 -Wall -Werror -I../include -L../bin -lserial_wiring -lpthread -g
 
 */
 
-#include <Stream.h>
-#include <UartSerial.h>
+#include <serial_wiring>
 
 #include <string.h>
 #include <unistd.h>
@@ -37,12 +36,19 @@ void onSerialEvent (void *context_) {
     while(s->available())
     {
         char inChar = (char)s->read();
-        std::cout << inChar;
+        std::cout << inChar << std::flush;
     }
-    fflush(stdout);
 }
 
 int main (int argc, char * argv[]) {
+    if ( argc < 2 ) { std::cout << "Usage: " << argv[0] << " <serial device descriptor>" << std::endl; return -1; }
+
+    std::cout << "*****************************************************" << std::endl;
+    std::cout << "** The \"Examples > 04.Communication > SerialEvent\" **" << std::endl;
+    std::cout << "** sketch must be deployed to the Arduino in order **" << std::endl;
+    std::cout << "** for the sample to work correctly.               **" << std::endl;
+    std::cout << "*****************************************************" << std::endl;
+
     // Buffer variables used to receive user input and send to Arduino
     char * user_input_buffer = NULL;
     size_t user_input_buffer_length = 0;
@@ -51,7 +57,7 @@ int main (int argc, char * argv[]) {
     // device. On Mac OSX the path is /dev/cu.usbmodem1411. On most Linux
     // platforms including the Raspberry Pi the path needs to be changed to
     // /dev/ttyACM0
-    remote_wiring::UartSerial usb("/dev/ttyACM0");
+    serial_wiring::UartSerial usb(argv[1]);
 
     // The sample Arduino sketch is expecting a baud rate of 9600
     usb.begin(9600);
@@ -64,7 +70,7 @@ int main (int argc, char * argv[]) {
     // By default Arduinos go through a hard reset when they receive a new
     // serial connection. The following sleep() is to allow it time to
     // boot up before sending serial data.
-    sleep(2);
+    ::sleep(2);
 
     // Get user input
     std::cout << "Type a message to send to the Arduino, then press <Enter>: ";
